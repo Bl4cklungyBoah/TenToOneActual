@@ -21,7 +21,6 @@ bool UQuizGameInstance::SubmitAnswer(int32 AnswerIndex)
 
     bool bCorrect = Questions[CurrentQuestionIndex].CorrectIndex == AnswerIndex;
 
-    // przechodzimy do nastêpnego pytania
     CurrentQuestionIndex++;
 
     return bCorrect;

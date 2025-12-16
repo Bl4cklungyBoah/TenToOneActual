@@ -5,9 +5,8 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "QuizGameInstance.generated.h"
-/**
- * Struktura jednego pytania quizowego
- */
+
+
 USTRUCT(BlueprintType)
 struct FQuizQuestion
 {
@@ -17,15 +16,12 @@ struct FQuizQuestion
     FString Question;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    TArray<FString> Answers; // A, B, C, D
+    TArray<FString> Answers;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
-    int32 CorrectIndex = 0; // 0-3
+    int32 CorrectIndex = 0;
 };
 
-/**
- * GameInstance do przechowywania quizu
- */
 UCLASS()
 class TENTOONE_API UQuizGameInstance : public UGameInstance
 {
@@ -33,19 +29,15 @@ class TENTOONE_API UQuizGameInstance : public UGameInstance
 
 public:
 
-    // Wszystkie pytania
     UPROPERTY(BlueprintReadOnly)
     TArray<FQuizQuestion> Questions;
 
-    // Aktualny indeks pytania
     UPROPERTY(BlueprintReadOnly)
     int32 CurrentQuestionIndex = 0;
 
-    // Zwraca aktualne pytanie
     UFUNCTION(BlueprintCallable)
     FQuizQuestion GetCurrentQuestion() const;
 
-    // Sprawdza odpowiedü i przechodzi dalej
     UFUNCTION(BlueprintCallable)
     bool SubmitAnswer(int32 AnswerIndex);
     virtual void Init() override;
