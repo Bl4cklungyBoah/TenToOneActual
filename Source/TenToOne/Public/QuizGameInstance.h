@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "Http.h"
 #include "QuizGameInstance.generated.h"
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnQuestionsLoaded);
 
 USTRUCT(BlueprintType)
 struct FQuizQuestion
@@ -28,6 +29,8 @@ class TENTOONE_API UQuizGameInstance : public UGameInstance
     GENERATED_BODY()
 
 public:
+    UFUNCTION(BlueprintCallable)
+    void FetchQuestionsFromGroq(const FString& Topic, int32 Count = 10);
 
     UPROPERTY(BlueprintReadOnly)
     TArray<FQuizQuestion> Questions;
@@ -40,5 +43,16 @@ public:
 
     UFUNCTION(BlueprintCallable)
     bool SubmitAnswer(int32 AnswerIndex);
-    virtual void Init() override;
+
+    UFUNCTION(BlueprintCallable)
+    void NextQuestion();
+
+    // currently there is hacky way of 5 seconds delay before showing ui to fetch questions, bind wbp bp to this instead later
+    UPROPERTY(BlueprintAssignable)
+    FOnQuestionsLoaded OnQuestionsLoaded;
+private:
+    void OnGroqResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+    UPROPERTY()
+    FString GroqApiKey;
+    void Init() override;
 };
