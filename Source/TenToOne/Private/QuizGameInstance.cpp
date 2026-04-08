@@ -101,13 +101,41 @@ void UQuizGameInstance::OnGroqResponse(FHttpRequestPtr Request, FHttpResponsePtr
         Q.Question = Obj->GetStringField(TEXT("question"));
 
         const TArray<TSharedPtr<FJsonValue>>* Answers;
+        //if (Obj->TryGetArrayField(TEXT("answers"), Answers))
+        //{
+        //    for (auto& A : *Answers)
+        //        Q.Answers.Add(A->AsString());
+        //}
         if (Obj->TryGetArrayField(TEXT("answers"), Answers))
         {
-            for (auto& A : *Answers)
-                Q.Answers.Add(A->AsString());
-        }
+            // store answers with original index
+            TArray<TPair<FString, int32>> AnswerPairs;
 
-        Q.CorrectIndex = Obj->GetIntegerField(TEXT("correctIndex"));
+            for (int32 i = 0; i < Answers->Num(); i++)
+            {
+                AnswerPairs.Add(TPair<FString, int32>(Answers->operator[](i)->AsString(), i));
+            }
+
+            // shuffle
+            for (int32 i = AnswerPairs.Num() - 1; i > 0; --i)
+            {
+                int32 SwapIndex = FMath::RandRange(0, i);
+                AnswerPairs.Swap(i, SwapIndex);
+            }
+
+            // rebuild answers + find new correct index
+            Q.Answers.Empty();
+            for (int32 i = 0; i < AnswerPairs.Num(); i++)
+            {
+                Q.Answers.Add(AnswerPairs[i].Key);
+
+                if (AnswerPairs[i].Value == Obj->GetIntegerField(TEXT("correctIndex")))
+                {
+                    Q.CorrectIndex = i;
+                }
+            }
+        }
+        //Q.CorrectIndex = Obj->GetIntegerField(TEXT("correctIndex"));
         Questions.Add(Q);
     }
 
