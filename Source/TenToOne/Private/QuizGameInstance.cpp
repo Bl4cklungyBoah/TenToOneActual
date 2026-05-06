@@ -92,6 +92,7 @@ void UQuizGameInstance::OnGroqResponse(FHttpRequestPtr Request, FHttpResponsePtr
         return;
 
     Questions.Empty();
+    bQuizFinished = false;
     for (auto& V : *Items)
     {
         TSharedPtr<FJsonObject> Obj = V->AsObject();
@@ -161,10 +162,28 @@ bool UQuizGameInstance::SubmitAnswer(int32 AnswerIndex)
     return Questions[CurrentQuestionIndex].CorrectIndex == AnswerIndex;
 }
 
+bool UQuizGameInstance::IsQuizFinished() const
+{
+    return bQuizFinished;
+}
+
 void UQuizGameInstance::NextQuestion()
 {
-    if (Questions.Num() == 0) return;
-    CurrentQuestionIndex = (CurrentQuestionIndex + 1) % Questions.Num();
+    if (Questions.Num() == 0)
+    {
+        bQuizFinished = true;
+        return;
+    }
+
+    if (CurrentQuestionIndex < Questions.Num() - 1)
+    {
+        CurrentQuestionIndex++;
+    }
+    else
+    {
+        bQuizFinished = true;
+        UE_LOG(LogTemp, Warning, TEXT("Quiz finished"));
+    }
 }
 
 

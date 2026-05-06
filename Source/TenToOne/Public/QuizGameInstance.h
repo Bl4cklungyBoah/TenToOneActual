@@ -47,6 +47,12 @@ public:
     UFUNCTION(BlueprintCallable)
     void NextQuestion();
 
+    UPROPERTY(BlueprintReadOnly, Category = "Quiz")
+    bool bQuizFinished = false;
+
+    UFUNCTION(BlueprintCallable, Category = "Quiz")
+    bool IsQuizFinished() const;
+
     // currently there is hacky way of 5 seconds delay before showing ui to fetch questions, bind wbp bp to this instead later
     UPROPERTY(BlueprintAssignable)
     FOnQuestionsLoaded OnQuestionsLoaded;
