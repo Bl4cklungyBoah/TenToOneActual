@@ -56,6 +56,10 @@ public:
     // currently there is hacky way of 5 seconds delay before showing ui to fetch questions, bind wbp bp to this instead later
     UPROPERTY(BlueprintAssignable)
     FOnQuestionsLoaded OnQuestionsLoaded;
+
+    //variable to hold chosen game topic
+    UPROPERTY(BlueprintReadWrite, Category = "Quiz Data")
+    FString PersistentTopic;
 private:
     void OnGroqResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
     UPROPERTY()
