@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
 #include "Http.h"
+#include "QuizSaveGame.h"
 #include "QuizGameInstance.generated.h"
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnQuestionsLoaded);
 
@@ -60,6 +61,15 @@ public:
     //variable to hold chosen game topic
     UPROPERTY(BlueprintReadWrite, Category = "Quiz Data")
     FString PersistentTopic;
+
+    UFUNCTION(BlueprintCallable, Category = "High Score")
+    void SaveHighScore(const FString& PlayerName, int32 Score);
+
+    UFUNCTION(BlueprintCallable, Category = "High Score")
+    TArray<FHighScoreEntry> LoadHighScores();
+
+    UFUNCTION(BlueprintCallable, Category = "High Score")
+    void ClearHighScores();
 private:
     void OnGroqResponse(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
     UPROPERTY()

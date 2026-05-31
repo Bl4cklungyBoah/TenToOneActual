@@ -3,6 +3,8 @@
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonReader.h"
 #include "Misc/ConfigCacheIni.h"
+#include "Kismet/GameplayStatics.h"
+#include "QuizSaveGame.h"
 static const FString GroqUrl = TEXT("https://api.groq.com/openai/v1/chat/completions");
 ////////static const FString GroqApiKey = TEXT("CHANGE");
 
@@ -206,4 +208,92 @@ void UQuizGameInstance::Init()
     {
         UE_LOG(LogTemp, Log, TEXT("Groq API key loaded"));
     }
+}
+
+
+static const FString HighScoreSlotName = TEXT("TenToOneHighScores");
+static const int32 HighScoreUserIndex = 0;
+
+void UQuizGameInstance::SaveHighScore(const FString& PlayerName, int32 Score)
+{
+    UQuizSaveGame* SaveData = nullptr;
+
+    if (UGameplayStatics::DoesSaveGameExist(HighScoreSlotName, HighScoreUserIndex))
+    {
+        SaveData = Cast<UQuizSaveGame>(
+            UGameplayStatics::LoadGameFromSlot(HighScoreSlotName, HighScoreUserIndex)
+        );
+    }
+
+    if (!SaveData)
+    {
+        SaveData = Cast<UQuizSaveGame>(
+            UGameplayStatics::CreateSaveGameObject(UQuizSaveGame::StaticClass())
+        );
+    }
+
+    if (!SaveData)
+    {
+        UE_LOG(LogTemp, Error, TEXT("Could not create high score save data"));
+        return;
+    }
+
+    FHighScoreEntry NewEntry;
+    NewEntry.PlayerName = PlayerName.TrimStartAndEnd();
+    NewEntry.Score = Score;
+
+    if (NewEntry.PlayerName.IsEmpty())
+    {
+        NewEntry.PlayerName = TEXT("Player");
+    }
+
+    SaveData->HighScores.Add(NewEntry);
+
+    SaveData->HighScores.Sort([](const FHighScoreEntry& A, const FHighScoreEntry& B)
+        {
+            return A.Score > B.Score;
+        });
+
+    const int32 MaxScores = 10;
+
+    if (SaveData->HighScores.Num() > MaxScores)
+    {
+        SaveData->HighScores.SetNum(MaxScores);
+    }
+
+    const bool bSaved = UGameplayStatics::SaveGameToSlot(
+        SaveData,
+        HighScoreSlotName,
+        HighScoreUserIndex
+    );
+
+    UE_LOG(LogTemp, Warning, TEXT("Saved high score: %s | %d | Success: %s"),
+        *NewEntry.PlayerName,
+        NewEntry.Score,
+        bSaved ? TEXT("true") : TEXT("false")
+    );
+}
+
+TArray<FHighScoreEntry> UQuizGameInstance::LoadHighScores()
+{
+    if (!UGameplayStatics::DoesSaveGameExist(HighScoreSlotName, HighScoreUserIndex))
+    {
+        return {};
+    }
+
+    UQuizSaveGame* SaveData = Cast<UQuizSaveGame>(
+        UGameplayStatics::LoadGameFromSlot(HighScoreSlotName, HighScoreUserIndex)
+    );
+
+    if (!SaveData)
+    {
+        return {};
+    }
+
+    return SaveData->HighScores;
+}
+
+void UQuizGameInstance::ClearHighScores()
+{
+    UGameplayStatics::DeleteGameInSlot(HighScoreSlotName, HighScoreUserIndex);
 }
